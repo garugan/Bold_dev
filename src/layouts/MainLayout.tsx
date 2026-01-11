@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
+import { TbFileInvoice, TbPackage, TbLogout } from "react-icons/tb";
 import './MainLayout.css'
 
 export function MainLayout() {
@@ -6,21 +7,21 @@ export function MainLayout() {
     <div className="layout">
       <aside className="sidebar">
         <div className="sidebar-header">
-          <h1>納品伝票管理</h1>
+          <img src="./images/logo.png" className="App-logo" alt="logo" />
         </div>
         <nav className="sidebar-nav">
           <NavLink to="/slips" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-            <span className="nav-icon">📋</span>
+            <TbFileInvoice className="nav-icon" />
             伝票管理
           </NavLink>
           <NavLink to="/products" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-            <span className="nav-icon">📦</span>
+            <TbPackage className="nav-icon" />
             商品管理
           </NavLink>
         </nav>
         <div className="sidebar-footer">
           <NavLink to="/login" className="nav-link logout">
-            <span className="nav-icon">🚪</span>
+            <TbLogout className="nav-icon" />
             ログアウト
           </NavLink>
         </div>
