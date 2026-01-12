@@ -7,6 +7,10 @@ import { SlipListPage } from './pages/SlipListPage'
 import { SlipDetailPage } from './pages/SlipDetailPage'
 import { ProductListPage } from './pages/ProductListPage'
 import { ProductDetailPage } from './pages/ProductDetailPage'
+import { UserListPage } from './pages/UserListPage'
+import { UserDetailPage } from './pages/UserDetailPage'
+import { CustomerListPage } from './pages/CustomerListPage'
+import { CustomerDetailPage } from './pages/CustomerDetailPage'
 
 function App() {
   return (
@@ -28,6 +32,14 @@ function App() {
           {/* 商品管理 */}
           <Route path="products" element={<ProductListPage />} />
           <Route path="products/:id" element={<ProductDetailPage />} />
+
+          {/* 顧客管理 */}
+          <Route path="customers" element={<CustomerListPage />} />
+          <Route path="customers/:id" element={<CustomerDetailPage />} />
+
+          {/* ユーザー管理 */}
+          <Route path="users" element={<UserListPage />} />
+          <Route path="users/:id" element={<UserDetailPage />} />
         </Route>
 
         {/* 未定義ルートはログインへリダイレクト */}

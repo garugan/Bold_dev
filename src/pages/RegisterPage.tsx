@@ -9,20 +9,42 @@ export function RegisterPage() {
   const [password, setPassword] = useState('')
   const [passwordConfirm, setPasswordConfirm] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [error, setError] = useState('')
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: 登録処理を実装
+    setError('')
+
     if (password !== passwordConfirm) {
-      alert('パスワードが一致しません')
+      setError('パスワードが一致しません')
       return
     }
-    navigate('/login')
+
+    try {
+      const res = await fetch('http://localhost:3001/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password }),
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        setError(data.error || '登録に失敗しました')
+        return
+      }
+
+      alert('登録が完了しました')
+      navigate('/login')
+    } catch (err) {
+      setError('サーバーに接続できません')
+    }
   }
 
   return (
     <div className="login-container">
       <div className="login-card">
         <h1 className="login-title">新規登録</h1>
+        {error && <div className="error-message">{error}</div>}
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
             <label htmlFor="name">名前</label>

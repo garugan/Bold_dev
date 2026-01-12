@@ -1,0 +1,53 @@
+-- ユーザーテーブル作成
+CREATE TABLE IF NOT EXISTS users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 顧客テーブル作成
+CREATE TABLE IF NOT EXISTS customers (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  address VARCHAR(500) NOT NULL,
+  phone VARCHAR(20) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 商品テーブル作成
+CREATE TABLE IF NOT EXISTS products (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  code VARCHAR(50) NOT NULL UNIQUE,
+  name VARCHAR(255) NOT NULL,
+  category VARCHAR(100) NOT NULL,
+  price INT NOT NULL,
+  stock INT NOT NULL DEFAULT 0,
+  description TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 伝票テーブル作成
+CREATE TABLE IF NOT EXISTS slips (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  slip_number VARCHAR(50) NOT NULL UNIQUE,
+  customer_id INT NOT NULL,
+  status ENUM('準備中', '配送中', '配送済') NOT NULL DEFAULT '準備中',
+  delivery_date DATE,
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (customer_id) REFERENCES customers(id)
+);
+
+-- 伝票明細テーブル作成
+CREATE TABLE IF NOT EXISTS slip_items (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  slip_id INT NOT NULL,
+  product_id INT NOT NULL,
+  quantity INT NOT NULL,
+  price INT NOT NULL,
+  FOREIGN KEY (slip_id) REFERENCES slips(id) ON DELETE CASCADE,
+  FOREIGN KEY (product_id) REFERENCES products(id)
+);

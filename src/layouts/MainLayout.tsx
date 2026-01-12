@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { TbFileInvoice, TbPackage, TbLogout } from "react-icons/tb";
+import { TbFileInvoice, TbPackage, TbLogout, TbUsers, TbBuildingStore } from "react-icons/tb";
 import './MainLayout.css'
 
 export function MainLayout() {
@@ -17,6 +17,14 @@ export function MainLayout() {
           <NavLink to="/products" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
             <TbPackage className="nav-icon" />
             商品管理
+          </NavLink>
+          <NavLink to="/customers" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+            <TbBuildingStore className="nav-icon" />
+            顧客管理
+          </NavLink>
+          <NavLink to="/users" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+            <TbUsers className="nav-icon" />
+            ユーザー管理
           </NavLink>
         </nav>
         <div className="sidebar-footer">

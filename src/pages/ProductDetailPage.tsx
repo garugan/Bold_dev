@@ -1,24 +1,104 @@
-import { useParams, Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import './PageStyles.css'
 
-const mockProductDetail = {
-  id: 'PRD-001',
-  name: 'ノートPC Dell XPS 15',
-  category: 'PC',
-  stock: 15,
-  price: 25000,
-  description: '15.6インチ FHD ディスプレイ、Intel Core i7、16GB RAM、512GB SSD搭載の高性能ノートPC。ビジネス用途に最適。',
-  supplier: 'Dell Japan株式会社',
-  lastUpdated: '2024-01-10',
-  recentSlips: [
-    { id: 'SLP-001', date: '2024-01-15', customer: '株式会社ABC', quantity: 1 },
-    { id: 'SLP-008', date: '2024-01-12', customer: '山田電機', quantity: 3 },
-    { id: 'SLP-012', date: '2024-01-08', customer: 'テック商事', quantity: 2 },
-  ],
+interface Product {
+  id: number
+  code: string
+  name: string
+  category: string
+  stock: number
+  price: number
+  description: string
+  created_at: string
 }
 
 export function ProductDetailPage() {
   const { id } = useParams()
+  const navigate = useNavigate()
+  const [product, setProduct] = useState<Product | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [editing, setEditing] = useState(false)
+  const [code, setCode] = useState('')
+  const [name, setName] = useState('')
+  const [category, setCategory] = useState('')
+  const [price, setPrice] = useState(0)
+  const [stock, setStock] = useState(0)
+  const [description, setDescription] = useState('')
+
+  useEffect(() => {
+    if (id === 'new') {
+      setLoading(false)
+      setEditing(true)
+    } else {
+      fetchProduct()
+    }
+  }, [id])
+
+  const fetchProduct = async () => {
+    try {
+      const res = await fetch(`http://localhost:3001/api/products/${id}`)
+      const data = await res.json()
+      setProduct(data)
+      setCode(data.code)
+      setName(data.name)
+      setCategory(data.category)
+      setPrice(data.price)
+      setStock(data.stock)
+      setDescription(data.description || '')
+    } catch (error) {
+      console.error('Failed to fetch product:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      if (id === 'new') {
+        const res = await fetch('http://localhost:3001/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, name, category, price, stock, description }),
+        })
+        const data = await res.json()
+        if (!res.ok) {
+          alert(data.error)
+          return
+        }
+        navigate(`/products/${data.id}`)
+      } else {
+        const res = await fetch(`http://localhost:3001/api/products/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, name, category, price, stock, description }),
+        })
+        const data = await res.json()
+        setProduct(data)
+        setEditing(false)
+      }
+    } catch (error) {
+      console.error('Failed to save product:', error)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!confirm('この商品を削除しますか？')) return
+
+    try {
+      await fetch(`http://localhost:3001/api/products/${id}`, {
+        method: 'DELETE',
+      })
+      navigate('/products')
+    } catch (error) {
+      console.error('Failed to delete product:', error)
+    }
+  }
+
+  if (loading) {
+    return <div className="page">読み込み中...</div>
+  }
 
   return (
     <div className="page">
@@ -26,69 +106,116 @@ export function ProductDetailPage() {
         <div className="breadcrumb">
           <Link to="/products" className="link">商品一覧</Link>
           <span> / </span>
-          <span>{id}</span>
+          <span>{id === 'new' ? '新規登録' : product?.name}</span>
         </div>
         <div className="header-actions">
-          <button className="btn btn-secondary">編集</button>
-          <button className="btn btn-danger">削除</button>
+          {id !== 'new' && !editing && (
+            <>
+              <button onClick={() => setEditing(true)} className="btn btn-secondary">編集</button>
+              <button onClick={handleDelete} className="btn btn-danger">削除</button>
+            </>
+          )}
         </div>
       </div>
 
-      <div className="detail-grid">
-        <div className="detail-card">
-          <h3 className="card-title">商品情報</h3>
-          <dl className="detail-list">
-            <dt>商品コード</dt>
-            <dd>{mockProductDetail.id}</dd>
-            <dt>商品名</dt>
-            <dd>{mockProductDetail.name}</dd>
-            <dt>カテゴリ</dt>
-            <dd>{mockProductDetail.category}</dd>
-            <dt>仕入先</dt>
-            <dd>{mockProductDetail.supplier}</dd>
-            <dt>最終更新</dt>
-            <dd>{mockProductDetail.lastUpdated}</dd>
-          </dl>
-        </div>
-
-        <div className="detail-card">
-          <h3 className="card-title">在庫・価格</h3>
-          <dl className="detail-list">
-            <dt>現在在庫</dt>
-            <dd className="large-number">{mockProductDetail.stock} 個</dd>
-            <dt>単価</dt>
-            <dd className="large-number">¥{mockProductDetail.price.toLocaleString()}</dd>
-          </dl>
-        </div>
-      </div>
-
-      <div className="detail-card full-width">
-        <h3 className="card-title">商品説明</h3>
-        <p className="description">{mockProductDetail.description}</p>
-      </div>
-
-      <div className="detail-card full-width">
-        <h3 className="card-title">最近の出荷履歴</h3>
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>伝票番号</th>
-              <th>日付</th>
-              <th>顧客</th>
-              <th>数量</th>
-            </tr>
-          </thead>
-          <tbody>
-            {mockProductDetail.recentSlips.map((slip) => (
-              <tr key={slip.id}>
-                <td><Link to={`/slips/${slip.id}`} className="link">{slip.id}</Link></td>
-                <td>{slip.date}</td>
-                <td>{slip.customer}</td>
-                <td>{slip.quantity}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="detail-card">
+        <h3 className="card-title">{id === 'new' ? '新規商品登録' : '商品情報'}</h3>
+        {editing ? (
+          <form onSubmit={handleSubmit} className="edit-form">
+            <div className="form-grid">
+              <div className="form-row">
+                <label>商品コード</label>
+                <input
+                  type="text"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  placeholder="PRD-001"
+                  required
+                />
+              </div>
+              <div className="form-row">
+                <label>商品名</label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="商品名"
+                  required
+                />
+              </div>
+              <div className="form-row">
+                <label>カテゴリ</label>
+                <input
+                  type="text"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  placeholder="PC"
+                  required
+                />
+              </div>
+              <div className="form-row">
+                <label>単価</label>
+                <input
+                  type="number"
+                  value={price}
+                  onChange={(e) => setPrice(Number(e.target.value))}
+                  min="0"
+                  required
+                />
+              </div>
+              <div className="form-row">
+                <label>在庫数</label>
+                <input
+                  type="number"
+                  value={stock}
+                  onChange={(e) => setStock(Number(e.target.value))}
+                  min="0"
+                  required
+                />
+              </div>
+            </div>
+            <div className="form-row">
+              <label>説明</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="商品の説明"
+                rows={3}
+              />
+            </div>
+            <div className="form-actions">
+              {id !== 'new' && (
+                <button type="button" onClick={() => setEditing(false)} className="btn btn-secondary">キャンセル</button>
+              )}
+              <button type="submit" className="btn btn-primary">
+                {id === 'new' ? '登録' : '保存'}
+              </button>
+            </div>
+          </form>
+        ) : (
+          <>
+            <dl className="detail-list">
+              <dt>商品コード</dt>
+              <dd>{product?.code}</dd>
+              <dt>商品名</dt>
+              <dd>{product?.name}</dd>
+              <dt>カテゴリ</dt>
+              <dd>{product?.category}</dd>
+              <dt>単価</dt>
+              <dd className="large-number">¥{product?.price.toLocaleString()}</dd>
+              <dt>在庫数</dt>
+              <dd className="large-number">{product?.stock} 個</dd>
+              <dt>登録日</dt>
+              <dd>{product && new Date(product.created_at).toLocaleDateString('ja-JP')}</dd>
+            </dl>
+            {product?.description && (
+              <div style={{ marginTop: '1rem' }}>
+                <h4 style={{ margin: '0 0 0.5rem', color: '#64748b', fontSize: '0.875rem' }}>説明</h4>
+                <p className="description">{product.description}</p>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   )

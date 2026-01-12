@@ -1,30 +1,67 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import './PageStyles.css'
 
-const mockSlips = [
-  { id: 'SLP-001', date: '2024-01-15', customer: '株式会社ABC', status: '配送済', items: 3, total: 45000 },
-  { id: 'SLP-002', date: '2024-01-15', customer: '有限会社XYZ', status: '配送中', items: 5, total: 78500 },
-  { id: 'SLP-003', date: '2024-01-14', customer: '田中商店', status: '準備中', items: 2, total: 12000 },
-  { id: 'SLP-004', date: '2024-01-14', customer: '鈴木工業', status: '配送済', items: 8, total: 156000 },
-  { id: 'SLP-005', date: '2024-01-13', customer: '佐藤物産', status: '配送済', items: 1, total: 8500 },
-]
+interface Slip {
+  id: number
+  slip_number: string
+  customer_name: string
+  status: string
+  item_count: number
+  total: number
+  created_at: string
+}
 
 export function SlipListPage() {
+  const [slips, setSlips] = useState<Slip[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchSlips()
+  }, [])
+
+  const fetchSlips = async () => {
+    try {
+      const res = await fetch('http://localhost:3001/api/slips')
+      const data = await res.json()
+      setSlips(data)
+    } catch (error) {
+      console.error('Failed to fetch slips:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('この伝票を削除しますか？')) return
+
+    try {
+      await fetch(`http://localhost:3001/api/slips/${id}`, {
+        method: 'DELETE',
+      })
+      setSlips(slips.filter((slip) => slip.id !== id))
+    } catch (error) {
+      console.error('Failed to delete slip:', error)
+    }
+  }
+
+  const getStatusClass = (status: string) => {
+    switch (status) {
+      case '配送済': return 'status-done'
+      case '配送中': return 'status-progress'
+      default: return 'status-pending'
+    }
+  }
+
+  if (loading) {
+    return <div className="page">読み込み中...</div>
+  }
+
   return (
     <div className="page">
       <div className="page-header">
         <h2 className="page-title">伝票一覧</h2>
-        <button className="btn btn-primary">+ 新規伝票作成</button>
-      </div>
-
-      <div className="search-bar">
-        <input type="text" placeholder="伝票番号、顧客名で検索..." className="search-input" />
-        <select className="filter-select">
-          <option value="">すべてのステータス</option>
-          <option value="preparing">準備中</option>
-          <option value="shipping">配送中</option>
-          <option value="delivered">配送済</option>
-        </select>
+        <Link to="/slips/new" className="btn btn-primary">+ 新規伝票作成</Link>
       </div>
 
       <div className="table-container">
@@ -41,23 +78,32 @@ export function SlipListPage() {
             </tr>
           </thead>
           <tbody>
-            {mockSlips.map((slip) => (
-              <tr key={slip.id}>
-                <td><Link to={`/slips/${slip.id}`} className="link">{slip.id}</Link></td>
-                <td>{slip.date}</td>
-                <td>{slip.customer}</td>
-                <td>{slip.items}点</td>
-                <td>¥{slip.total.toLocaleString()}</td>
-                <td>
-                  <span className={`status status-${slip.status === '配送済' ? 'done' : slip.status === '配送中' ? 'progress' : 'pending'}`}>
-                    {slip.status}
-                  </span>
-                </td>
-                <td>
-                  <Link to={`/slips/${slip.id}`} className="btn btn-small">詳細</Link>
-                </td>
+            {slips.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="text-center">伝票がありません</td>
               </tr>
-            ))}
+            ) : (
+              slips.map((slip) => (
+                <tr key={slip.id}>
+                  <td><Link to={`/slips/${slip.id}`} className="link">{slip.slip_number}</Link></td>
+                  <td>{new Date(slip.created_at).toLocaleDateString('ja-JP')}</td>
+                  <td>{slip.customer_name}</td>
+                  <td>{slip.item_count}点</td>
+                  <td>¥{(slip.total || 0).toLocaleString()}</td>
+                  <td>
+                    <span className={`status ${getStatusClass(slip.status)}`}>
+                      {slip.status}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="action-buttons">
+                      <Link to={`/slips/${slip.id}`} className="btn btn-small">詳細</Link>
+                      <button onClick={() => handleDelete(slip.id)} className="btn btn-small btn-danger-small">削除</button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
