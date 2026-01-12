@@ -9,17 +9,58 @@
   color: white;
   display: flex;
   flex-direction: column;
+  transition: width 0.3s ease;
+}
+
+.sidebar.collapsed {
+  width: 64px;
 }
 
 .sidebar-header {
-  padding: 1.5rem;
+  padding: 1rem;
   border-bottom: 1px solid #334155;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 64px;
+}
+
+.sidebar.collapsed .sidebar-header {
+  justify-content: center;
+  padding: 1rem 0.5rem;
 }
 
 .sidebar-header h1 {
   margin: 0;
   font-size: 1.125rem;
   font-weight: 600;
+}
+
+.sidebar.collapsed .sidebar-header h1 {
+  display: none;
+}
+
+.App-logo {
+  max-height: 40px;
+  width: auto;
+}
+
+.collapse-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.collapse-btn:hover {
+  background: #334155;
+  color: white;
 }
 
 .sidebar-nav {
@@ -35,6 +76,12 @@
   color: #94a3b8;
   text-decoration: none;
   transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.sidebar.collapsed .nav-link {
+  justify-content: center;
+  padding: 0.75rem;
 }
 
 .nav-link:hover {
@@ -48,7 +95,16 @@
 }
 
 .nav-icon {
-  font-size: 1.125rem;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.nav-label {
+  transition: opacity 0.3s ease;
+}
+
+.sidebar.collapsed .nav-label {
+  display: none;
 }
 
 .sidebar-footer {
